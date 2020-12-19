@@ -2,6 +2,39 @@ import React from "react";
 import Calendar from "react-calendar";
 import moment from "moment";
 
+const styles = {
+  calenderComponent: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "column",
+  },
+  addEventDiv: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  insideAddEventDiv: {
+    display: "flex",
+    alignItems: "flex-end",
+  },
+  actionDiv: {
+    borderRadius: "50%",
+    border: "1px solid blue",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "30px",
+    height: "30px",
+    color: "blue",
+  },
+  eventListDiv: {
+    display: "flex",
+    flexDirection: "column",
+    marginTop: "5%",
+  },
+  eventListSpan: { color: "blue" },
+};
 class CalenderComponentClass extends React.Component {
   constructor(props) {
     super(props);
@@ -16,6 +49,17 @@ class CalenderComponentClass extends React.Component {
   }
 
   handleChangeDate = (value, event) => {
+    const myEvents = JSON.parse(localStorage.getItem("myEvents"));
+    if (myEvents !== null) {
+      Object.keys(myEvents).map((singleEventDate) => {
+        if (moment(value).format("l") === singleEventDate) {
+          Object.entries(myEvents).map(([key, value]) => {
+            var concatMyEvent = value.concat(this.state.eventValue);
+            this.setState({ myEventData: concatMyEvent });
+          });
+        }
+      });
+    }
     this.setState({ calenderDate: value, addEvent: true });
   };
 
@@ -31,26 +75,40 @@ class CalenderComponentClass extends React.Component {
     };
     let myEventData = [];
     myEventData.push(data);
-    if (this.state.myEvents === null) localStorage.setItem("myEvents", JSON.stringify(data));
-    else {
+    if (this.state.myEvents === null) {
+      localStorage.setItem("myEvents", JSON.stringify([data]));
+      this.setState({ myEventData: [this.state.eventValue] });
+    } else {
       Object.keys(this.state.myEvents).map((singleEventDate) => {
         if (singleEventDate === moment(this.state.calenderDate).format("l")) {
-          var myEventValueData = Object.values(this.state.myEvents);
-          var concatMyEvent = myEventValueData.concat(this.state.eventValue);
-          var mySecondEvent = {
-            [moment(this.state.calenderDate).format("l")]: concatMyEvent,
-          };
-          this.setState({ myEvents: mySecondEvent }, () => {
-            localStorage.setItem("myEvents", JSON.stringify(this.state.myEvents));
+          Object.entries(this.state.myEvents).map(([key, value]) => {
+            var concatMyEvent = value.concat(this.state.eventValue);
+            var mySecondEvent = {
+              [moment(this.state.calenderDate).format("l")]: concatMyEvent,
+            };
+            this.setState({ myEventData: concatMyEvent }, () => {
+              localStorage.setItem("myEvents", JSON.stringify(mySecondEvent));
+            });
           });
+        } else {
+          let calenderData = [this.state.myEvents];
+          var eventData = {
+            [moment(this.state.calenderDate).format("l")]: [this.state.eventValue],
+          };
+          console.log(this.state.myEvents);
+          console.log(calenderData);
+          calenderData.push(eventData);
+          localStorage.setItem("myEvents", JSON.stringify(calenderData));
         }
       });
     }
   };
 
   render() {
+    console.log(this.state.myEvents);
+    console.log(this.state.myEventData);
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
+      <div style={styles.calenderComponent}>
         <div>
           <Calendar
             showNavigation={false}
@@ -64,8 +122,8 @@ class CalenderComponentClass extends React.Component {
           />
         </div>
         {this.state.addEvent ? (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <div style={{ display: "flex", alignItems: "flex-end" }}>
+          <div style={styles.addEventDiv}>
+            <div style={styles.insideAddEventDiv}>
               <input
                 style={{ marginTop: "10%", width: "45vh", height: "30px", marginRight: "4%" }}
                 type="text"
@@ -75,22 +133,19 @@ class CalenderComponentClass extends React.Component {
                 value={this.state.eventValue}
                 onChange={this.handleChange("eventValue")}
               />
-              <div
-                style={{
-                  borderRadius: "50%",
-                  border: "1px solid blue",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  width: "30px",
-                  height: "30px",
-                  color: "blue",
-                }}
-                onClick={() => this.saveData()}
-              >
+              <div style={styles.actionDiv} onClick={() => this.saveData()}>
                 +
               </div>
             </div>
+            {this.state.myEventData.length === 0 ? (
+              ""
+            ) : (
+              <div style={styles.eventListDiv}>
+                {this.state.myEventData.map((singleEvent, index) => (
+                  <span style={styles.eventListSpan}>{`${singleEvent}`}</span>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           ""
