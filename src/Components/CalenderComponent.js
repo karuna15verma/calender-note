@@ -55,7 +55,7 @@ class CalenderComponentClass extends React.Component {
         if (moment(value).format("l") === singleEventDate) {
           Object.entries(myEvents).map(([key, value]) => {
             var concatMyEvent = value.concat(this.state.eventValue);
-            this.setState({ myEventData: concatMyEvent });
+            this.setState({ myEventData: concatMyEvent, eventValue: "", myEventData: [] });
           });
         }
       });
@@ -75,32 +75,32 @@ class CalenderComponentClass extends React.Component {
     };
     let myEventData = [];
     myEventData.push(data);
+    console.log(this.state.myEvents);
     if (this.state.myEvents === null) {
       localStorage.setItem("myEvents", JSON.stringify([data]));
-      this.setState({ myEventData: [this.state.eventValue] });
+      this.setState({ myEventData: [this.state.eventValue], myEvents: [this.state.eventValue] });
     } else {
-      Object.keys(this.state.myEvents).map((singleEventDate) => {
-        if (singleEventDate === moment(this.state.calenderDate).format("l")) {
-          Object.entries(this.state.myEvents).map(([key, value]) => {
-            var concatMyEvent = value.concat(this.state.eventValue);
-            var mySecondEvent = {
-              [moment(this.state.calenderDate).format("l")]: concatMyEvent,
-            };
-            this.setState({ myEventData: concatMyEvent }, () => {
-              localStorage.setItem("myEvents", JSON.stringify(mySecondEvent));
-            });
-          });
+      var obj = this.state.myEvents;
+      console.log(obj);
+
+      for (const [key, value] of Object.entries(obj)) {
+        console.log(value);
+        if (value.hasOwnProperty(moment(this.state.calenderDate).format("l"))) {
+          console.log(value);
+          console.log(this.state.eventValue);
+          value[moment(this.state.calenderDate).format("l")].push(this.state.eventValue);
+          console.log(value);
+          localStorage.setItem("myEvents", JSON.stringify(value));
         } else {
-          let calenderData = [this.state.myEvents];
+          let calenderData = this.state.myEvents;
           var eventData = {
             [moment(this.state.calenderDate).format("l")]: [this.state.eventValue],
           };
-          console.log(this.state.myEvents);
-          console.log(calenderData);
           calenderData.push(eventData);
           localStorage.setItem("myEvents", JSON.stringify(calenderData));
+          this.setState({ myEventData: calenderData, myEvents: calenderData });
         }
-      });
+      }
     }
   };
 
@@ -137,13 +137,21 @@ class CalenderComponentClass extends React.Component {
                 +
               </div>
             </div>
-            {this.state.myEventData.length === 0 ? (
+            {this.state.myEvents === null ? (
               ""
             ) : (
               <div style={styles.eventListDiv}>
-                {this.state.myEventData.map((singleEvent, index) => (
-                  <span style={styles.eventListSpan}>{`${singleEvent}`}</span>
-                ))}
+                {this.state.myEvents.map((singleEvent, index) =>
+                  Object.entries(singleEvent).map(([key, value]) => {
+                    console.log(value[0]);
+                    // value.map((singleValue) => {
+                    <span style={styles.eventListSpan}>
+                      {/* {console.log(singleValue)} */}
+                      {value[0]}
+                    </span>;
+                    // });
+                  })
+                )}
               </div>
             )}
           </div>
